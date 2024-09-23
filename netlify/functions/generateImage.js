@@ -31,7 +31,7 @@ exports.handler = async function(event, context) {
     const { prompt } = JSON.parse(event.body);
 
     const response = await axios.post(
-      'https://api.openai.com/v3/images/generations',
+      'https://api.openai.com/v1/images/generations',
       {
         model: "dall-e-3",
         prompt: prompt,
