@@ -3,9 +3,9 @@
 const axios = require('axios');
 
 exports.handler = async function(event, context) {
-  // Configurar las cabeceras CORS
+  // Definir las cabeceras CORS
   const headers = {
-    'Access-Control-Allow-Origin': '*', // Permite cualquier origen. Para mayor seguridad, reemplaza '*' con el dominio específico de tu frontend.
+    'Access-Control-Allow-Origin': '*', // Reemplaza '*' con tu dominio para mayor seguridad
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -53,7 +53,8 @@ exports.handler = async function(event, context) {
       body: JSON.stringify({ imageUrl }),
     };
   } catch (error) {
-    console.error(error);
+    // Registrar el error completo para obtener más detalles
+    console.error('Error al generar la imagen:', error.response ? error.response.data : error.message);
     return {
       statusCode: 500,
       headers: headers,
