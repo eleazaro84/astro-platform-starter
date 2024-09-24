@@ -1,10 +1,6 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+const fetch = require('node-fetch');
 
-// Agregar esta función para generar variaciones
-exports.handler = async (event) => {
-  
+exports.handler = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -15,62 +11,46 @@ exports.handler = async (event) => {
       },
     };
   }
+
+  // Aquí iría tu lógica de procesamiento de la imagen, llamada a la API, etc.
+  // Ejemplo de la respuesta:
   
   try {
-    // Verifica que sea una solicitud POST
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ error: 'Método no permitido' }),
-      };
-    }
+    const body = JSON.parse(event.body);
 
-    // Obtener los parámetros de la solicitud
-    const { imagePath, n = 1, size = '1024x1024' } = JSON.parse(event.body);
-
-    // Verificar que el archivo de imagen exista
-    const filePath = path.resolve(__dirname, imagePath);
-    if (!fs.existsSync(filePath)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Imagen no encontrada' }),
-      };
-    }
-
-    // Leer la imagen y convertirla a base64
-    const imageData = fs.readFileSync(filePath);
-
-    const formData = new FormData();
-    formData.append('image', imageData, {
-      filename: path.basename(imagePath),
-      contentType: 'image/png',
+    // Llamar al servicio de OpenAI para generar variaciones
+    const openAiResponse = await fetch('https://api.openai.com/v1/images/variations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        image: body.imagePath,
+        n: body.n,
+        size: body.size
+      })
     });
 
-    // Realiza la solicitud a la API de OpenAI para generar variaciones
-    const response = await axios.post(
-      'https://api.openai.com/v1/images/variations',
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          ...formData.getHeaders(),
-        },
-        params: {
-          n: n,
-          size: size,
-        },
-      }
-    );
+    const data = await openAiResponse.json();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(response.data),
+      headers: {
+        'Access-Control-Allow-Origin': '*', // Permitir solicitudes desde cualquier origen
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
     };
+
   } catch (error) {
-    console.error('Error al generar variaciones de imagen:', error);
     return {
-      statusCode: error.response?.status || 500,
-      body: JSON.stringify({ error: error.message }),
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ error: 'Error en la solicitud' }),
     };
   }
 };
