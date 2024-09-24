@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
+  // Manejar preflight request (solicitud OPTIONS)
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -9,16 +10,26 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
+      body: ''
     };
   }
 
-  // Aquí iría tu lógica de procesamiento de la imagen, llamada a la API, etc.
-  // Ejemplo de la respuesta:
-  
+  // Verificar que la solicitud sea POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ error: 'Método no permitido, solo se permite POST' })
+    };
+  }
+
   try {
     const body = JSON.parse(event.body);
 
-    // Llamar al servicio de OpenAI para generar variaciones
+    // Llamar a la API de OpenAI para generar variaciones de imagen
     const openAiResponse = await fetch('https://api.openai.com/v1/images/variations', {
       method: 'POST',
       headers: {
@@ -37,10 +48,10 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*', // Permitir solicitudes desde cualquier origen
+        'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(data)
     };
 
   } catch (error) {
@@ -50,7 +61,7 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ error: 'Error en la solicitud' }),
+      body: JSON.stringify({ error: 'Error en la solicitud', details: error.message }),
     };
   }
 };
