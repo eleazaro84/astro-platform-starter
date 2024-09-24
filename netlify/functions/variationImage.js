@@ -4,6 +4,14 @@ const path = require('path');
 
 // Agregar esta función para generar variaciones
 exports.handler = async (event) => {
+  
+  // Definir las cabeceras CORS
+  const headers = {
+    'Access-Control-Allow-Origin': '*', // Reemplaza '*' con tu dominio para mayor seguridad
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  
   try {
     // Verifica que sea una solicitud POST
     if (event.httpMethod !== 'POST') {
