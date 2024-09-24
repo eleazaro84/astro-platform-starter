@@ -58,4 +58,19 @@ exports.handler = async (event, context) => {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
       },
-      body
+      body: JSON.stringify(data)
+    };
+
+  } catch (error) {
+    console.error('Error en la solicitud:', error); // Agregar más detalles en los logs
+
+    return {
+      statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ error: 'Error en la solicitud', details: error.message }),
+    };
+  }
+};
